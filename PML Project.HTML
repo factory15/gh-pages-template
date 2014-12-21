@@ -62,7 +62,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <p>Let’s build our model. After a few attempts at differnt types of linear models, a random forest seemed to provide the best accuracy and efficiency.</p>
 <p>Firstly let’s set the train control. We stated that we would do a 3 k-fold cross validation.</p>
 <pre class="r"><code>tc &lt;- trainControl(method = &quot;cv&quot;, number = 3, allowParallel = TRUE)</code></pre>
-<p>Next let’s train the model. As we stated previously we will use a random forest with classe as the outcome. The following are the results</p>
+<p>Next let’s train the model. As we stated previously, we will use a random forest with classe as the outcome. The following are the results</p>
 <pre class="r"><code>modelFit$results</code></pre>
 <pre><code>##   mtry  Accuracy     Kappa   AccuracySD      KappaSD
 ## 1    2 0.9929671 0.9911035 0.0013057618 0.0016511162
