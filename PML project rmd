@@ -1,0 +1,101 @@
+---
+title: "Practical Machine Learning Project- Analysis of Weight Lifting Activity"
+output:
+  html_document: default
+  pdf_document:
+    fig_height: 3.5
+    fig_width: 3.5
+---
+
+**Executive Summary**
+
+In this analysis we will be examining the output of various accelerometers in an effort to determine if any one of six individuals performed an exercise correctly. They were asked to perform the exercises correctly and incorrectly in 5 different ways which is captured in the "classe" variable in the data set. This variable will be our outcome while we will use the accelerometers as the predictors.
+
+There are two datasets for this project, training and testing. We will use the training set exclusively to develop our model using a k-fold cross validation. Firstly, we must clean the dataset. In performing a near zero value analysis, we see that we have many predictors that have near zero values and have a low percentage of uniqueness. Also there are many variables that have NA values as well. Ultimately all of the near zero predictors and values under .5% unique were scrubbed for the model. Please see the appendix for details. 
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+```{r,message=FALSE,cache=TRUE,echo=FALSE}
+
+library(caret)
+trainingSet <- as.data.frame(read.csv("pml-training.csv"))
+nzv<-nearZeroVar(trainingSet,saveMetrics=TRUE)
+nzv$colIndex<-(1:160)# number each column
+
+#delete each near zero and non unique. Dont lose the classe var
+nzvTrue<-nzv[which((nzv$nzv=="TRUE" | nzv$percentUnique<.5) & row.names(nzv)!="classe"),]
+trainsub<-trainingSet[,-nzvTrue$colIndex]
+
+##get rid of NA columns
+trainsub<-trainsub[,-which(is.na(trainsub[1,]))]
+
+##get rid of unnecessary columns, like timestamp, etc
+trainsub<-trainsub[,-(1:4)]
+tc <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
+modelFit <- train(classe~., data = trainsub, method="rf", trControl = tc, prox=FALSE)
+```
+
+Let's build our model. After a few attempts at differnt types of linear models, a random forest seemed to provide the best accuracy and efficiency. 
+
+Firstly let's set the train control. We stated that we would do a 3 k-fold cross validation. 
+
+```{r, echo=TRUE,eval=FALSE}
+tc <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
+```
+
+Next let's train the model. As we stated previously we will use a random forest with classe as the outcome. The following are the results
+
+
+```{r}
+
+modelFit$results
+
+```
+We see that our accuracy is on average 99% for each of the training folds. Next let's examine the confusion matrix and the sample error.
+
+```{r}
+
+modelFit$finalModel
+```
+
+Looking at the non-diagonal values, we see that the false predictions are quite low. We would estimate that the out of sample error rate on the actual testing set, while a bit higher than this, would still be relatively low. We can expect this model to be a very accurate predictor of the classe variable.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#Appendix
+
+
+
+**Code used for report**
+
+
+Data Cleaning
+
+```{r,eval=FALSE}
+nzv<-nearZeroVar(trainingSet,saveMetrics=TRUE)
+nzv$colIndex<-(1:160)# number each column
+
+#delete each near zero and non unique. Dont lose the classe var
+nzvTrue<-nzv[which((nzv$nzv=="TRUE" | nzv$percentUnique<.5) & row.names(nzv)!="classe"),]
+trainsub<-trainingSet[,-nzvTrue$colIndex]
+
+##get rid of NA columns
+trainsub<-trainsub[,-which(is.na(trainsub[1,]))]
+
+##get rid of unnecessary columns, like timestamp, etc
+trainsub<-trainsub[,-(1:4)]
+```
+
+
+Model
+
+
+```{r,eval=FALSE}
+tc <- trainControl(method = "cv", number = 3, allowParallel = TRUE)
+modelFit <- train(classe~., data = trainsub, method="rf", trControl = tc, prox=FALSE)
+```
+
